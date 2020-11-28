@@ -9,6 +9,7 @@ import UIKit
 
 class ViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
 
+    let mainStoryboard = UIStoryboard(name: "Main", bundle: nil)
     enum Row {
         case image(title: String, urlString: String)
         case largeImage(title: String, previewUrlString: String, urlString: String)
@@ -32,24 +33,39 @@ class ViewController: UIViewController, UITableViewDataSource, UITableViewDelega
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        1
+        2
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath) as? ImageCell else {
             fatalError("Could not dequeue cell")
         }
+        
+        switch rows[indexPath.row] {
+        case .image(title: let title, urlString: let url):
+            cell.title = title
+            cell.imageUrl = URL(string: url)
+        case .largeImage(title: let title, previewUrlString: let previewUrl, urlString: _):
+            cell.title = title
+            cell.imageUrl = URL(string: previewUrl)
+        }
 
-        cell.title = "Guinea pig"
-        cell.imageUrl = URL(string: "https://news.clas.ufl.edu/files/2020/06/AdobeStock_345118478-copy-1440x961-1.jpg")
         return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let detailsViewController = URLDetailsViewController()
-        detailsViewController.pageUrl = URL(string: "https://news.clas.ufl.edu/uncovering-the-origin-of-the-domesticated-guinea-pig/")
-        navigationController?.pushViewController(detailsViewController, animated: true)
+        
+        switch rows[indexPath.row] {
+        case .image(title: _, urlString: let url):
+            let detailsViewController = URLDetailsViewController()
+            detailsViewController.pageUrl = URL(string: url)
+            navigationController?.pushViewController(detailsViewController, animated: true)
+        case .largeImage(title: _, previewUrlString: _, urlString: let url):
+            let detailsViewController: LargeImageViewController = mainStoryboard.instantiateViewController(identifier: "largeImage")
+            navigationController?.pushViewController(detailsViewController, animated: true)
+        }
+        
     }
 }
 
